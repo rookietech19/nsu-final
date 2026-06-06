@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
 import { getAuthUsers, approveAuthUser, setAuthUserRole } from '../services/authService';
-import { ShieldCheck, History, Download, Upload, ShieldAlert, ArrowRight, UserCog } from 'lucide-react';
+import { uploadCloudBackup, listCloudBackups, downloadCloudBackup } from '../services/storageService';
+import { ShieldCheck, History, Download, Upload, ShieldAlert, ArrowRight, UserCog, Cloud, CloudUpload, CloudDownload } from 'lucide-react';
 
 const UserManagementView = () => {
   const { user: currentUser, isAdmin } = useAuth();
@@ -43,6 +44,8 @@ const UserManagementView = () => {
 
   // Backup file state
   const [backupFile, setBackupFile] = useState(null);
+  const [cloudBackups, setCloudBackups] = useState([]);
+  const [isCloudLoading, setIsCloudLoading] = useState(false);
 
   const loadAudits = async () => {
     try {
@@ -56,8 +59,23 @@ const UserManagementView = () => {
   useEffect(() => {
     if (activeTab === 'audits') {
       loadAudits();
+    } else if (activeTab === 'utilities') {
+      fetchCloudBackups();
     }
   }, [activeTab]);
+
+  const fetchCloudBackups = async () => {
+    setIsCloudLoading(true);
+    try {
+      const list = await listCloudBackups();
+      setCloudBackups(list);
+    } catch (err) {
+      console.error(err);
+      triggerToast('Failed to load cloud backups: ' + err.message, 'warning');
+    } finally {
+      setIsCloudLoading(false);
+    }
+  };
 
   const handleRoleChange = async (userId, email, newRole) => {
     if (email === currentUser?.email) {
@@ -109,6 +127,67 @@ const UserManagementView = () => {
     } catch (err) {
       console.error(err);
       triggerToast('Backup generation failed.', 'danger');
+    }
+  };
+
+  const getDatabasePayload = () => {
+    const dbKeys = ['College', 'Batch', 'Student', 'Attendance', 'Examination', 'BehaviourRecord', 'ClassType', 'ExamSchedule', 'User', 'AuditTrail'];
+    const backupData = {};
+    dbKeys.forEach(key => {
+      const raw = localStorage.getItem(`acadflow_${key}`);
+      backupData[key] = raw ? JSON.parse(raw) : [];
+    });
+    const authUsers = localStorage.getItem('acadflow_auth_users');
+    if (authUsers) {
+      backupData['AuthUsers'] = JSON.parse(authUsers);
+    }
+    return backupData;
+  };
+
+  const handleBackupToCloud = async () => {
+    setIsCloudLoading(true);
+    try {
+      const backupData = getDatabasePayload();
+      const fileName = `AcademiaFlow_Backup_${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+      await uploadCloudBackup(backupData, fileName);
+      triggerToast('Database successfully backed up to the cloud.', 'success');
+      fetchCloudBackups();
+    } catch (err) {
+      console.error(err);
+      triggerToast('Cloud backup failed: ' + err.message, 'danger');
+    } finally {
+      setIsCloudLoading(false);
+    }
+  };
+
+  const handleRestoreFromCloud = async (url) => {
+    if (!window.confirm("WARNING: This will completely overwrite all local storage with the cloud backup. Proceed?")) return;
+    setIsCloudLoading(true);
+    try {
+      const data = await downloadCloudBackup(url);
+      const requiredKeys = ['College', 'Batch', 'Student', 'Attendance', 'Examination', 'BehaviourRecord', 'ClassType', 'ExamSchedule', 'User', 'AuditTrail'];
+      
+      const keysMatch = requiredKeys.every(k => data[k] !== undefined);
+      if (!keysMatch) {
+        throw new Error('Schema Mismatch: Downloaded file is not a valid backup.');
+      }
+
+      requiredKeys.forEach(k => {
+        localStorage.setItem(`acadflow_${k}`, JSON.stringify(data[k]));
+      });
+      if (data['AuthUsers']) {
+        localStorage.setItem('acadflow_auth_users', JSON.stringify(data['AuthUsers']));
+      }
+
+      triggerToast('Database restored from cloud successfully! Reloading...', 'success');
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+    } catch (err) {
+      console.error(err);
+      triggerToast('Cloud restore failed: ' + err.message, 'danger');
+    } finally {
+      setIsCloudLoading(false);
     }
   };
 
@@ -427,7 +506,55 @@ const UserManagementView = () => {
                 </button>
               )}
             </div>
+            {/* Cloud Backup block */}
+          <div className="glass-panel" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.25rem', gridColumn: '1 / -1' }}>
+            <h4 style={{ fontSize: '1rem', fontWeight: 700, margin: 0, color: 'var(--primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Cloud size={18} /> Cloud Backup System
+            </h4>
+            <p style={{ fontSize: '0.825rem', color: 'var(--text-secondary)', margin: 0 }}>
+              Securely store a snapshot of your database in Firebase Cloud Storage. You can restore your data directly from the cloud at any time.
+            </p>
+            
+            <button 
+              className="btn btn-primary" 
+              onClick={handleBackupToCloud} 
+              disabled={isCloudLoading}
+              style={{ marginTop: '0.5rem', width: 'fit-content', background: 'var(--primary-gradient)' }}
+            >
+              <CloudUpload size={16} />
+              {isCloudLoading ? 'Processing...' : 'Upload Database to Cloud'}
+            </button>
+
+            {/* List of Cloud Backups */}
+            <div style={{ marginTop: '1rem', borderTop: '1px dashed var(--border-color)', paddingTop: '1rem' }}>
+              <h5 style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.75rem' }}>Available Cloud Backups</h5>
+              {cloudBackups.length === 0 ? (
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>No backups found in the cloud.</div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '200px', overflowY: 'auto' }}>
+                  {cloudBackups.map((file) => (
+                    <div key={file.fullPath} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', background: 'rgba(0,0,0,0.02)', borderRadius: '8px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-main)' }}>{file.name}</span>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Firebase Storage</span>
+                      </div>
+                      <button 
+                        className="btn btn-secondary" 
+                        style={{ padding: '0.35rem 0.65rem', fontSize: '0.75rem' }}
+                        onClick={() => handleRestoreFromCloud(file.url)}
+                        disabled={isCloudLoading}
+                      >
+                        <CloudDownload size={14} style={{ marginRight: '0.25rem', verticalAlign: 'middle' }} />
+                        Restore
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
+
+        </div>
 
         </div>
       )}
