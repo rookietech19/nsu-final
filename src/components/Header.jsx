@@ -1,11 +1,12 @@
 // Academia Flow ERP - Header Component
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
-import { Bell, Moon, Sun, LogOut, ChevronDown, CheckCircle } from 'lucide-react';
+import { Bell, Moon, Sun, LogOut, CheckCircle, Menu } from 'lucide-react';
 import { base44 } from '../api/base44Client';
 
-const Header = ({ activeView }) => {
+const Header = ({ onMenuToggle, isCollapsed }) => {
   const { user, logout } = useAuth();
   const { notifications, checkSystemAlerts } = useNotifications();
   const [showNotifications, setShowNotifications] = useState(false);
@@ -13,6 +14,10 @@ const Header = ({ activeView }) => {
     return localStorage.getItem('acadflow_theme') === 'dark';
   });
   const [collegeName, setCollegeName] = useState('Academia Flow');
+  const location = useLocation();
+
+  // Determine active view from URL path
+  const activeView = location.pathname.split('/')[1] || 'dashboard';
 
   // Load college details for branding
   useEffect(() => {
@@ -58,22 +63,39 @@ const Header = ({ activeView }) => {
 
   const getRoleBadgeColor = (role) => {
     switch (role) {
+      case 'super_admin':
       case 'admin': return 'badge-danger';
       case 'teacher': return 'badge-success';
+      case 'leader': return 'badge-warning';
       default: return 'badge-info';
     }
   };
 
   return (
-    <div className="header-bar no-print">
-      {/* View Title */}
-      <div>
-        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, color: 'var(--text-main)', fontFamily: 'var(--font-title)' }}>
-          {viewTitles[activeView] || 'Academia Flow'}
-        </h2>
-        <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0 }}>
-          {collegeName}
-        </p>
+    <div className="header-bar no-print" style={{ left: 'var(--sidebar-current-width, 260px)', transition: 'left 0.3s ease' }}
+      ref={el => {
+        if (el) {
+          el.style.setProperty('--sidebar-current-width', isCollapsed ? '72px' : '260px');
+        }
+      }}
+    >
+      {/* Hamburger + View Title */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <button
+          className="hamburger-btn"
+          onClick={onMenuToggle}
+          aria-label="Open navigation menu"
+        >
+          <Menu size={22} />
+        </button>
+        <div>
+          <h2 className="header-title" style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, color: 'var(--text-main)', fontFamily: 'var(--font-title)' }}>
+            {viewTitles[activeView] || 'Academia Flow'}
+          </h2>
+          <p className="header-subtitle" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0 }}>
+            {collegeName}
+          </p>
+        </div>
       </div>
 
       {/* Header Actions */}
@@ -135,6 +157,7 @@ const Header = ({ activeView }) => {
                 top: '2.5rem',
                 right: 0,
                 width: '320px',
+                maxWidth: 'calc(100vw - 2rem)',
                 zIndex: 100,
                 padding: '1rem',
                 display: 'flex',
@@ -188,16 +211,16 @@ const Header = ({ activeView }) => {
               height: '32px',
               borderRadius: '50%',
               objectFit: 'cover',
-              border: '1px solid var(--border-color)'
+              border: '2px solid var(--primary-glow)'
             }}
           />
           <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
-            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', lineHeight: 1.2 }}>
+            <span className="header-user-name" style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', lineHeight: 1.2 }}>
               {user?.name || 'Academic Staff'}
             </span>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', marginTop: '0.125rem' }}>
               <span className={`badge ${getRoleBadgeColor(user?.role)}`} style={{ padding: '0.05rem 0.35rem', fontSize: '0.65rem' }}>
-                {user?.role?.toUpperCase()}
+                {(user?.role || 'user').toUpperCase()}
               </span>
             </div>
           </div>

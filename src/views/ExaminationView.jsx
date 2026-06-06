@@ -297,7 +297,7 @@ const ExaminationView = () => {
                   </select>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div className="grid-2-col">
                   <div className="form-group" style={{ marginBottom: 0 }}>
                     <label className="form-label">Semester Block</label>
                     <select 
@@ -372,8 +372,8 @@ const ExaminationView = () => {
               </div>
 
               {/* Spreadsheet Grid container */}
-              <div className="table-container" style={{ maxHeight: '420px', overflowY: 'auto' }}>
-                <table className="table-main" style={{ minWidth: '1100px' }}>
+              <div className="table-container" style={{ maxHeight: '420px', overflowY: 'auto', overflowX: 'auto' }}>
+                <table className="table-main" style={{ minWidth: 0 }}>
                   <thead>
                     <tr style={{ background: 'rgba(0,0,0,0.015)' }}>
                       <th className="table-th" style={{ width: '120px' }}>Roll Number</th>
@@ -540,7 +540,7 @@ const ExaminationView = () => {
 
           {/* Marksheet Report view */}
           {selectedStudentExam ? (
-            <div className="glass-panel" style={{ padding: '2.5rem', background: 'white', color: 'black', border: '1px solid #ddd', boxShadow: 'none' }}>
+            <div className="glass-panel marksheet-card" style={{ background: 'white', color: 'black', border: '1px solid #ddd', boxShadow: 'none' }}>
               
               {/* Institutional letterhead */}
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', borderBottom: '2px solid black', paddingBottom: '1rem', marginBottom: '2rem', textAlign: 'center' }}>
@@ -561,7 +561,7 @@ const ExaminationView = () => {
               </div>
 
               {/* Student info mapping */}
-              <div style={{ display: 'grid', gridTemplateColumns: '3fr 2fr', gap: '2rem', fontSize: '0.9rem', marginBottom: '2rem' }}>
+              <div className="grid-3-2-col" style={{ fontSize: '0.9rem', marginBottom: '2rem' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
                   <div>Name of Student: <strong>{selectedStudentExam.student_name}</strong></div>
                   <div>Roll Number: <strong>{selectedStudentExam.roll_number}</strong></div>
@@ -608,7 +608,7 @@ const ExaminationView = () => {
               </table>
 
               {/* Behavior & attendance values */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', fontSize: '0.85rem', marginBottom: '2rem', borderBottom: '1px solid #ddd', paddingBottom: '1.25rem' }}>
+              <div className="grid-4-col" style={{ fontSize: '0.85rem', marginBottom: '2rem', borderBottom: '1px solid #ddd', paddingBottom: '1.25rem' }}>
                 <div>
                   <span style={{ color: '#666', display: 'block', fontSize: '0.75rem' }}>LETTER GRADE</span>
                   <strong>{selectedStudentExam.grade}</strong>
@@ -638,7 +638,7 @@ const ExaminationView = () => {
               </div>
 
               {/* Signatures */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', textAlign: 'center', fontSize: '0.85rem' }}>
+              <div className="grid-2-col" style={{ textAlign: 'center', fontSize: '0.85rem' }}>
                 <div>
                   <div style={{ height: '40px' }}></div>
                   <div style={{ borderTop: '1px solid black', width: '200px', margin: '0 auto', paddingTop: '0.25rem' }}>

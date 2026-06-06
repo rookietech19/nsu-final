@@ -3,9 +3,11 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '../api/base44Client';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
+import { useNavigate } from 'react-router-dom';
 import { Search, Filter, Plus, FileSpreadsheet, Trash2, Edit2, Eye, UserX, UserCheck } from 'lucide-react';
 
-const StudentManagementView = ({ setActiveView, setSelectedStudentId }) => {
+const StudentManagementView = () => {
+  const navigate = useNavigate();
   const { hasWriteAccess, isAdmin } = useAuth();
   const { triggerToast, trackAction } = useNotifications();
   const [students, setStudents] = useState([]);
@@ -449,10 +451,7 @@ const StudentManagementView = ({ setActiveView, setSelectedStudentId }) => {
                     <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
                       {/* View Profile */}
                       <button 
-                        onClick={() => {
-                          setSelectedStudentId(student.id);
-                          setActiveView('student-profile');
-                        }}
+                        onClick={() => navigate(`/student-profile/${student.id}`)}
                         className="btn btn-secondary" 
                         style={{ padding: '0.35rem 0.65rem' }}
                         title="View Detailed Profile"
@@ -593,7 +592,7 @@ const StudentManagementView = ({ setActiveView, setSelectedStudentId }) => {
               
               {/* Section 1: Personal Info */}
               <h4 style={{ fontSize: '0.85rem', color: 'var(--primary)', marginBottom: '0.75rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.25rem' }}>Personal Information</h4>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '1rem', marginBottom: '1rem' }}>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Full Name</label>
                   <input 
@@ -618,7 +617,7 @@ const StudentManagementView = ({ setActiveView, setSelectedStudentId }) => {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+              <div className="grid-3-col" style={{ marginBottom: '1.5rem' }}>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Date of Birth</label>
                   <input 
@@ -654,7 +653,7 @@ const StudentManagementView = ({ setActiveView, setSelectedStudentId }) => {
 
               {/* Section 2: Contact Info */}
               <h4 style={{ fontSize: '0.85rem', color: 'var(--primary)', marginBottom: '0.75rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.25rem' }}>Contact Details</h4>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+              <div className="grid-2-col" style={{ marginBottom: '1rem' }}>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Phone Number</label>
                   <input 
@@ -687,7 +686,7 @@ const StudentManagementView = ({ setActiveView, setSelectedStudentId }) => {
 
               {/* Section 3: Institutional Info */}
               <h4 style={{ fontSize: '0.85rem', color: 'var(--primary)', marginBottom: '0.75rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.25rem' }}>Institutional Details</h4>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '1rem', marginBottom: '1rem' }}>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Class Name / Section (e.g. MBBS-2A)</label>
                   <input 
@@ -710,7 +709,7 @@ const StudentManagementView = ({ setActiveView, setSelectedStudentId }) => {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+              <div className="grid-3-col" style={{ marginBottom: '1.5rem' }}>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Academic Batch</label>
                   <select 
@@ -750,7 +749,7 @@ const StudentManagementView = ({ setActiveView, setSelectedStudentId }) => {
 
               {/* Section 4: Emergency Contacts */}
               <h4 style={{ fontSize: '0.85rem', color: 'var(--primary)', marginBottom: '0.75rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.25rem' }}>Guardian / Emergency Contact</h4>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+              <div className="grid-2-col" style={{ marginBottom: '1rem' }}>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Guardian Full Name</label>
                   <input 

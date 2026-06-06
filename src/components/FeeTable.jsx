@@ -59,8 +59,8 @@ const FeeTable = ({ data, isAdmin, reload }) => {
   };
 
   return (
-    <div className="glass-panel animate-fade-in" style={{ overflowX: 'auto' }}>
-      <table className="table-main" style={{ width: '100%', minWidth: '800px' }}>
+    <div className="glass-panel animate-fade-in table-container" style={{ overflowX: 'auto' }}>
+      <table className="table-main" style={{ width: '100%', minWidth: 0 }}>
         <thead>
           <tr>
             <th className="table-th">Student Name</th>

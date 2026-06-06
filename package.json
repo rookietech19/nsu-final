@@ -11,10 +11,16 @@
   },
   "dependencies": {
     "@base44/sdk": "^0.8.31",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
     "firebase": "^12.14.0",
+    "firebase-admin": "^13.10.0",
     "lucide-react": "^1.17.0",
     "react": "^19.2.6",
-    "react-dom": "^19.2.6"
+    "react-dom": "^19.2.6",
+    "react-router-dom": "^6.30.4",
+    "serverless-http": "^4.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

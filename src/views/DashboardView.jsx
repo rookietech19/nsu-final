@@ -14,8 +14,10 @@ import {
   ArrowRight,
   TrendingUp
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
-const DashboardView = ({ setActiveView, setSelectedStudentId }) => {
+const DashboardView = () => {
+  const navigate = useNavigate();
   const { user, isAdmin, hasWriteAccess } = useAuth();
   const { triggerToast } = useNotifications();
   const [stats, setStats] = useState({
@@ -97,7 +99,7 @@ const DashboardView = ({ setActiveView, setSelectedStudentId }) => {
           flexWrap: 'wrap'
         }}
       >
-        <div style={{ flex: 1, minWidth: '300px' }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
           <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '0.5rem', fontFamily: 'var(--font-title)' }}>
             Welcome back, {user?.name}!
           </h1>
@@ -171,7 +173,7 @@ const DashboardView = ({ setActiveView, setSelectedStudentId }) => {
       {/* SVG Charts section */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 380px), 1fr))',
         gap: '1.5rem'
       }}>
         {/* SVG Chart 1: Grade Distributions */}
@@ -278,14 +280,14 @@ const DashboardView = ({ setActiveView, setSelectedStudentId }) => {
 
       {/* Audit Trails and Quick actions */}
       <div style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 300px',
+        display: 'flex',
+        flexWrap: 'wrap',
         gap: '1.5rem',
         alignItems: 'start'
       }}>
         
         {/* Left Side: Audit Trail logs */}
-        <div className="glass-panel" style={{ padding: '1.5rem' }}>
+        <div className="glass-panel" style={{ padding: '1.5rem', flex: '1 1 300px', minWidth: 0 }}>
           <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '1rem', color: 'var(--text-main)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             System Audit Trail Logs
             <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-muted)' }}>Latest Writes</span>
@@ -342,7 +344,7 @@ const DashboardView = ({ setActiveView, setSelectedStudentId }) => {
         </div>
 
         {/* Right Side: Quick Action Panel */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', flex: '0 1 300px', minWidth: 0 }}>
           
           {/* Quick Actions Panel */}
           {hasWriteAccess && (
@@ -353,7 +355,7 @@ const DashboardView = ({ setActiveView, setSelectedStudentId }) => {
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 <button 
-                  onClick={() => setActiveView('attendance')}
+                  onClick={() => navigate('/attendance')}
                   className="btn btn-secondary" 
                   style={{ width: '100%', justifyContent: 'space-between' }}
                 >
@@ -361,7 +363,7 @@ const DashboardView = ({ setActiveView, setSelectedStudentId }) => {
                   <ArrowRight size={14} />
                 </button>
                 <button 
-                  onClick={() => setActiveView('exams')}
+                  onClick={() => navigate('/exams')}
                   className="btn btn-secondary" 
                   style={{ width: '100%', justifyContent: 'space-between' }}
                 >
@@ -369,7 +371,7 @@ const DashboardView = ({ setActiveView, setSelectedStudentId }) => {
                   <ArrowRight size={14} />
                 </button>
                 <button 
-                  onClick={() => setActiveView('schedule')}
+                  onClick={() => navigate('/schedule')}
                   className="btn btn-secondary" 
                   style={{ width: '100%', justifyContent: 'space-between' }}
                 >
@@ -378,7 +380,7 @@ const DashboardView = ({ setActiveView, setSelectedStudentId }) => {
                 </button>
                 {isAdmin && (
                   <button 
-                    onClick={() => setActiveView('college')}
+                    onClick={() => navigate('/college')}
                     className="btn btn-secondary" 
                     style={{ width: '100%', justifyContent: 'space-between' }}
                   >
@@ -404,10 +406,7 @@ const DashboardView = ({ setActiveView, setSelectedStudentId }) => {
                 recentBehaviors.map(incident => (
                   <div 
                     key={incident.id}
-                    onClick={() => {
-                      setSelectedStudentId(incident.student_id);
-                      setActiveView('students');
-                    }}
+                    onClick={() => navigate(`/student-profile/${incident.student_id}`)}
                     style={{ 
                       fontSize: '0.75rem', 
                       padding: '0.5rem', 

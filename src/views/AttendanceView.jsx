@@ -292,7 +292,7 @@ const AttendanceView = () => {
                   </select>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div className="grid-2-col">
                   <div className="form-group" style={{ marginBottom: 0 }}>
                     <label className="form-label">Attendance Date</label>
                     <input 
@@ -390,7 +390,7 @@ const AttendanceView = () => {
                         
                         {/* Selector */}
                         <td className="table-td">
-                          <div style={{ display: 'flex', gap: '0.25rem', justifyContent: 'center' }}>
+                          <div style={{ display: 'flex', gap: '0.25rem', justifyContent: 'center', flexWrap: 'wrap' }}>
                             {['Present', 'Absent', 'Late', 'Excused'].map(st => {
                               const isActive = item.status === st;
                               // Single unified className — fixes the duplicate className bug

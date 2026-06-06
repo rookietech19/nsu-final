@@ -1,7 +1,11 @@
 // Academia Flow ERP - Main Application Entry
 import React, { useState } from 'react';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { NotificationProvider, useNotifications } from './context/NotificationContext';
+
+// Guards
+import { ProtectedRoute, RoleRoute } from './router/guards';
 
 // Views
 import Sidebar from './components/Sidebar';
@@ -22,102 +26,168 @@ import UserManagementView from './views/UserManagementView';
 // Icons
 import { AlertCircle, Lock, Undo2, X, GraduationCap } from 'lucide-react';
 
-const MainAppContent = () => {
-  const { isAuthenticated, isLoading, login, user } = useAuth();
-  const { toasts, removeToast, executeUndo, lastAction } = useNotifications();
-  const [activeView, setActiveView] = useState('dashboard');
-  const [selectedStudentId, setSelectedStudentId] = useState(null);
-  const [loginRole, setLoginRole] = useState('admin');
+const LoginScreen = () => {
+  const { login, register, isAuthenticated, isLoading } = useAuth();
+  const [isRegisterMode, setIsRegisterMode] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
 
-  if (isLoading) {
-    return (
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '100vh',
-        gap: '1rem',
-        background: 'var(--bg-gradient)',
-        color: 'var(--text-main)'
-      }}>
-        <GraduationCap size={48} className="animate-pulse" style={{ color: 'var(--primary)' }} />
-        <h3 style={{ fontFamily: 'var(--font-title)', fontWeight: 700 }}>Academia Flow Portal</h3>
-        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Validating credentials...</p>
-      </div>
-    );
+  if (isAuthenticated) {
+    return <Navigate to="/" replace />;
   }
 
-  // Login Screen if not Authenticated
-  if (!isAuthenticated) {
-    return (
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '100vh',
-        padding: '1.5rem',
-        background: 'var(--bg-gradient)'
-      }}>
-        <div 
-          className="glass-panel-elevated animate-fade-in"
-          style={{
-            width: '100%',
-            maxWidth: '440px',
-            padding: '2.5rem',
-            textAlign: 'center',
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setError('');
+    setMessage('');
+
+    try {
+      if (isRegisterMode) {
+        await register(name.trim(), email.trim(), password);
+        setMessage('Request submitted. Please wait for admin approval before you can sign in.');
+        setName('');
+        setEmail('');
+        setPassword('');
+      } else {
+        await login(email.trim(), password);
+      }
+    } catch (err) {
+      setError(err?.message || 'Unable to complete request.');
+    }
+  };
+
+  return (
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: '100vh',
+      padding: '1.5rem',
+      background: 'var(--bg-gradient)'
+    }}>
+      <div 
+        className="glass-panel-elevated animate-fade-in"
+        style={{
+          width: '100%',
+          maxWidth: '460px',
+          padding: '2.5rem',
+          textAlign: 'center',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '1.5rem'
+        }}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <div style={{
+            width: '56px',
+            height: '56px',
+            borderRadius: '14px',
+            background: 'var(--primary)',
             display: 'flex',
-            flexDirection: 'column',
-            gap: '1.5rem'
-          }}
-        >
-          {/* Logo Branding */}
-          <div style={{ flexDirection: 'column', gap: '0.5rem' }}>
-            <div style={{
-              width: '56px',
-              height: '56px',
-              borderRadius: '14px',
-              background: 'var(--primary)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white',
-              fontSize: '1.75rem',
-              fontWeight: 800,
-              fontFamily: 'var(--font-title)',
-              boxShadow: 'var(--shadow-primary)'
-            }}>
-              AF
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'white',
+            fontSize: '1.75rem',
+            fontWeight: 800,
+            fontFamily: 'var(--font-title)',
+            boxShadow: 'var(--shadow-primary)',
+            margin: '0 auto 1rem auto'
+          }}>
+            AF
+          </div>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, margin: 0, fontFamily: 'var(--font-title)' }}>
+            Academia Flow
+          </h2>
+          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>
+            Sign in with your Gmail address and password.
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {isRegisterMode && (
+            <div style={{ textAlign: 'left' }}>
+              <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.4rem' }} htmlFor="login-name">
+                Full name
+              </label>
+              <input
+                id="login-name"
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                style={{
+                  width: '100%',
+                  padding: '0.85rem 1rem',
+                  borderRadius: '12px',
+                  border: '1px solid var(--border-color)',
+                  background: 'rgba(255,255,255,0.85)',
+                  color: 'var(--text-main)'
+                }}
+              />
             </div>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 800, margin: 0, fontFamily: 'var(--font-title)' }}>
-              Academia Flow
-            </h2>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>
-              Academic Management ERP Suite
-            </p>
+          )}
+
+          <div style={{ textAlign: 'left' }}>
+            <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.4rem' }} htmlFor="login-email">
+              Gmail address
+            </label>
+            <input
+              id="login-email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              style={{
+                width: '100%',
+                padding: '0.85rem 1rem',
+                borderRadius: '12px',
+                border: '1px solid var(--border-color)',
+                background: 'rgba(255,255,255,0.85)',
+                color: 'var(--text-main)'
+              }}
+            />
           </div>
 
-          <div style={{ width: '100%', height: '1px', background: 'var(--border-color)' }} />
-
-          {/* Role selector to test different options */}
-          <div className="form-group" style={{ textAlign: 'left', marginBottom: 0 }}>
-            <label className="form-label">Choose Simulation Access Level</label>
-            <select 
-              className="form-input"
-              value={loginRole}
-              onChange={(e) => setLoginRole(e.target.value)}
-              style={{ padding: '0.75rem' }}
-            >
-              <option value="admin">Administrator (Full Write/Settings Control)</option>
-              <option value="teacher">Teacher (Student, Grades, Attendance Writes)</option>
-              <option value="user">Student / User (Read-Only Directory View)</option>
-            </select>
+          <div style={{ textAlign: 'left' }}>
+            <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.4rem' }} htmlFor="login-password">
+              Password
+            </label>
+            <input
+              id="login-password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              style={{
+                width: '100%',
+                padding: '0.85rem 1rem',
+                borderRadius: '12px',
+                border: '1px solid var(--border-color)',
+                background: 'rgba(255,255,255,0.85)',
+                color: 'var(--text-main)'
+              }}
+            />
           </div>
 
-          {/* Sign In Button */}
-          <button 
-            onClick={() => login(loginRole)}
+          {error && (
+            <div style={{ color: 'var(--danger)', fontSize: '0.85rem', textAlign: 'left' }}>
+              {error}
+            </div>
+          )}
+
+          {message && (
+            <div style={{ color: 'var(--success)', fontSize: '0.85rem', textAlign: 'left' }}>
+              {message}
+            </div>
+          )}
+
+          <button
+            type="submit"
             className="btn btn-primary"
+            disabled={isLoading}
             style={{
               padding: '0.875rem',
               fontSize: '0.95rem',
@@ -131,60 +201,129 @@ const MainAppContent = () => {
             }}
           >
             <Lock size={16} />
-            Sign In with Google Account
+            {isLoading ? (isRegisterMode ? 'Submitting...' : 'Signing in...') : (isRegisterMode ? 'Request Access' : 'Sign In')}
           </button>
+        </form>
 
-          <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', margin: 0 }}>
-            Secure institutional authentication provided by Google OAuth.
-          </p>
-        </div>
+        <button
+          type="button"
+          className="btn btn-secondary"
+          onClick={() => {
+            setIsRegisterMode(prev => !prev);
+            setError('');
+            setMessage('');
+          }}
+          style={{
+            padding: '0.875rem',
+            fontSize: '0.95rem',
+            fontWeight: 600,
+            borderRadius: '10px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '0.75rem',
+            width: '100%'
+          }}
+        >
+          {isRegisterMode ? 'Back to Login' : 'Request New Access'}
+        </button>
+
+        <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', margin: 0 }}>
+          New Gmail users are created as pending access. Super admin or admin must approve before login is allowed.
+        </p>
       </div>
-    );
-  }
+    </div>
+  );
+};
 
-  // Active View Router
-  const renderView = () => {
-    switch (activeView) {
-      case 'dashboard':
-        return <DashboardView setActiveView={setActiveView} setSelectedStudentId={setSelectedStudentId} />;
-      case 'college':
-        return <CollegeSettingsView />;
-      case 'batches':
-        return <BatchManagementView />;
-      case 'students':
-        return <StudentManagementView setActiveView={setActiveView} setSelectedStudentId={setSelectedStudentId} />;
-      case 'student-profile':
-        return <StudentProfileDetailView studentId={selectedStudentId} setActiveView={setActiveView} />;
-      case 'attendance':
-        return <AttendanceView />;
-      case 'exams':
-        return <ExaminationView />;
-      case 'behavior':
-        return <BehaviorView />;
-      case 'schedule':
-        return <ExamScheduleView />;
-      case 'fees':
-        return <FeeDashboard />;
-      case 'class-types':
-        return <ClassTypesView />;
-      case 'users':
-        return <UserManagementView />;
-      default:
-        return <DashboardView setActiveView={setActiveView} setSelectedStudentId={setSelectedStudentId} />;
-    }
+const MainAppLayout = () => {
+  const { toasts, removeToast, executeUndo, lastAction } = useNotifications();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    return localStorage.getItem('acadflow_sidebar_collapsed') === 'true';
+  });
+
+  const handleMenuToggle = () => setSidebarOpen(prev => !prev);
+  const handleSidebarClose = () => setSidebarOpen(false);
+  const handleToggleCollapse = () => {
+    setIsCollapsed(prev => {
+      const next = !prev;
+      localStorage.setItem('acadflow_sidebar_collapsed', String(next));
+      return next;
+    });
   };
 
   return (
     <div className="app-container">
-      {/* Sidebar Navigation */}
-      <Sidebar activeView={activeView} setActiveView={setActiveView} />
+      <Sidebar isOpen={sidebarOpen} onClose={handleSidebarClose} isCollapsed={isCollapsed} onToggleCollapse={handleToggleCollapse} />
+      <Header onMenuToggle={handleMenuToggle} isCollapsed={isCollapsed} />
 
-      {/* Header Bar */}
-      <Header activeView={activeView} />
-
-      {/* Main Viewport Content */}
-      <div className="main-content">
-        {renderView()}
+      <div className="main-content" style={{ marginLeft: isCollapsed ? '72px' : '260px' }}>
+        <Routes>
+          <Route path="/" element={<DashboardView />} />
+          <Route path="/college" element={
+            <RoleRoute allowedRoles={['super_admin', 'admin']}>
+              <CollegeSettingsView />
+            </RoleRoute>
+          } />
+          <Route path="/batches" element={
+            <RoleRoute allowedRoles={['super_admin', 'admin']}>
+              <BatchManagementView />
+            </RoleRoute>
+          } />
+          <Route path="/students" element={
+            <RoleRoute allowedRoles={['super_admin', 'admin', 'teacher', 'student']}>
+              <StudentManagementView />
+            </RoleRoute>
+          } />
+          <Route path="/student-profile/:id" element={
+            <RoleRoute allowedRoles={['super_admin', 'admin', 'teacher', 'student']}>
+              <StudentProfileDetailView />
+            </RoleRoute>
+          } />
+          <Route path="/attendance" element={
+            <RoleRoute allowedRoles={['super_admin', 'admin', 'teacher', 'leader', 'student']}>
+              <AttendanceView />
+            </RoleRoute>
+          } />
+          <Route path="/exams" element={
+            <RoleRoute allowedRoles={['super_admin', 'admin', 'teacher', 'student']}>
+              <ExaminationView />
+            </RoleRoute>
+          } />
+          <Route path="/behavior" element={
+            <RoleRoute allowedRoles={['super_admin', 'admin', 'teacher']}>
+              <BehaviorView />
+            </RoleRoute>
+          } />
+          <Route path="/schedule" element={
+            <RoleRoute allowedRoles={['super_admin', 'admin', 'teacher', 'student']}>
+              <ExamScheduleView />
+            </RoleRoute>
+          } />
+          <Route path="/fees" element={
+            <RoleRoute allowedRoles={['super_admin', 'admin', 'student']}>
+              <FeeDashboard />
+            </RoleRoute>
+          } />
+          <Route path="/class-types" element={
+            <RoleRoute allowedRoles={['super_admin', 'admin']}>
+              <ClassTypesView />
+            </RoleRoute>
+          } />
+          <Route path="/users" element={
+            <RoleRoute allowedRoles={['super_admin']}>
+              <UserManagementView />
+            </RoleRoute>
+          } />
+          <Route path="/unauthorized" element={
+            <div className="flex h-screen items-center justify-center flex-col">
+              <h2>Unauthorized Access</h2>
+              <p>You do not have permission to view this page.</p>
+            </div>
+          } />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </div>
 
       {/* Floating Action/Toast Center Notifications */}
@@ -198,10 +337,10 @@ const MainAppContent = () => {
           display: 'flex',
           flexDirection: 'column',
           gap: '0.75rem',
-          width: '320px'
+          width: '320px',
+          maxWidth: 'calc(100vw - 3rem)'
         }}
       >
-        {/* Undo Toast */}
         {lastAction && (
           <div 
             className="glass-panel-elevated animate-fade-in"
@@ -229,7 +368,6 @@ const MainAppContent = () => {
           </div>
         )}
 
-        {/* Dynamic Toasts Stack */}
         {toasts.map(toast => {
           let typeColor = 'var(--primary)';
           let bgGlow = 'var(--primary-glow)';
@@ -284,11 +422,45 @@ const MainAppContent = () => {
   );
 };
 
+const RootRouter = () => {
+  const { isLoading } = useAuth();
+  
+  if (isLoading) {
+    return (
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100vh',
+        gap: '1rem',
+        background: 'var(--bg-gradient)',
+        color: 'var(--text-main)'
+      }}>
+        <GraduationCap size={48} className="animate-pulse" style={{ color: 'var(--primary)' }} />
+        <h3 style={{ fontFamily: 'var(--font-title)', fontWeight: 700 }}>Academia Flow Portal</h3>
+        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Validating credentials...</p>
+      </div>
+    );
+  }
+
+  return (
+    <Routes>
+      <Route path="/login" element={<LoginScreen />} />
+      <Route path="/*" element={
+        <ProtectedRoute>
+          <MainAppLayout />
+        </ProtectedRoute>
+      } />
+    </Routes>
+  );
+};
+
 const App = () => {
   return (
     <AuthProvider>
       <NotificationProvider>
-        <MainAppContent />
+        <RootRouter />
       </NotificationProvider>
     </AuthProvider>
   );

@@ -2,15 +2,40 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
-import { base44 } from '../api/base44Client';
+import { getAuthUsers, approveAuthUser, setAuthUserRole } from '../services/authService';
 import { ShieldCheck, History, Download, Upload, ShieldAlert, ArrowRight, UserCog } from 'lucide-react';
 
 const UserManagementView = () => {
-  const { allUsers, promoteUser, user: currentUser } = useAuth();
+  const { user: currentUser, isAdmin } = useAuth();
   const { triggerToast } = useNotifications();
 
   // Active Tab
   const [activeTab, setActiveTab] = useState('users');
+  const [allUsers, setAllUsers] = useState([]);
+
+  // Fetch users from local auth store
+  const loadUsers = async () => {
+    try {
+      setAllUsers(getAuthUsers());
+    } catch (err) {
+      console.error(err);
+      setAllUsers([]);
+    }
+  };
+
+  useEffect(() => {
+    if (['users', 'pending'].includes(activeTab)) {
+      loadUsers();
+    }
+  }, [activeTab]);
+
+  const promoteUser = async (userId, newRole) => {
+    const user = allUsers.find(u => u.id === userId);
+    if (!user) return;
+    const updatedUser = setAuthUserRole(user.email, newRole);
+    setAllUsers(getAuthUsers());
+    return updatedUser;
+  };
 
   // Logs state
   const [auditLogs, setAuditLogs] = useState([]);
@@ -45,6 +70,16 @@ const UserManagementView = () => {
       triggerToast(`Privilege level updated for ${email} to ${newRole}.`, 'success');
     } catch (err) {
       triggerToast('Failed to modify user role: ' + err.message, 'danger');
+    }
+  };
+
+  const handleApproveUser = async (userId, email) => {
+    try {
+      approveAuthUser(email, 'student');
+      setAllUsers(getAuthUsers());
+      triggerToast(`${email} is now approved for access.`, 'success');
+    } catch (err) {
+      triggerToast('Approval failed: ' + err.message, 'danger');
     }
   };
 
@@ -132,6 +167,10 @@ const UserManagementView = () => {
           <ShieldCheck size={16} style={{ marginRight: '0.5rem', verticalAlign: 'middle' }} />
           User Access Control
         </button>
+        <button className={`tab-btn ${activeTab === 'pending' ? 'active' : ''}`} onClick={() => setActiveTab('pending')}>
+          <ShieldAlert size={16} style={{ marginRight: '0.5rem', verticalAlign: 'middle' }} />
+          Pending Access Requests
+        </button>
         <button className={`tab-btn ${activeTab === 'audits' ? 'active' : ''}`} onClick={() => setActiveTab('audits')}>
           <History size={16} style={{ marginRight: '0.5rem', verticalAlign: 'middle' }} />
           Security Audit Trails
@@ -156,12 +195,14 @@ const UserManagementView = () => {
               <thead>
                 <tr>
                   <th className="table-th">User Name</th>
-                  <th className="table-th">OAuth Gmail Address</th>
-                  <th className="table-th">User Authorization Role</th>
+                  <th className="table-th">Gmail Address</th>
+                  <th className="table-th">Role</th>
+                  <th className="table-th">Status</th>
+                  <th className="table-th">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {allUsers.map(user => (
+                {allUsers.filter(user => user.approved).map(user => (
                   <tr key={user.id} className="table-row">
                     <td className="table-td" style={{ fontWeight: 600, color: 'var(--text-main)' }}>{user.name}</td>
                     <td className="table-td">{user.email}</td>
@@ -170,16 +211,40 @@ const UserManagementView = () => {
                         <UserCog size={14} style={{ color: 'var(--text-muted)' }} />
                         <select 
                           className="form-input" 
-                          style={{ width: '130px', padding: '0.35rem 0.65rem', fontSize: '0.85rem' }}
+                          style={{ width: '140px', padding: '0.35rem 0.65rem', fontSize: '0.85rem' }}
                           value={user.role}
                           onChange={(e) => handleRoleChange(user.id, user.email, e.target.value)}
-                          disabled={user.email === currentUser?.email}
+                          disabled={user.email === currentUser?.email || !currentUser?.isAdmin}
                         >
+                          <option value="super_admin">Super Admin</option>
                           <option value="admin">Admin</option>
                           <option value="teacher">Teacher</option>
-                          <option value="user">User (Read-only)</option>
+                          <option value="leader">Leader</option>
+                          <option value="student">Student</option>
                         </select>
                       </div>
+                    </td>
+                    <td className="table-td">
+                      {user.approved ? (
+                        <span className="badge badge-success" style={{ fontSize: '0.75rem' }}>Approved</span>
+                      ) : (
+                        <span className="badge badge-warning" style={{ fontSize: '0.75rem' }}>Pending</span>
+                      )}
+                    </td>
+                    <td className="table-td">
+                      {!user.approved && isAdmin && user.email !== currentUser?.email ? (
+                        <button
+                          className="btn btn-secondary"
+                          style={{ padding: '0.35rem 0.65rem', fontSize: '0.75rem' }}
+                          onClick={() => handleApproveUser(user.id, user.email)}
+                        >
+                          Approve
+                        </button>
+                      ) : (
+                        <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                          {user.approved ? 'No action needed' : 'Waiting approval'}
+                        </span>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -190,6 +255,62 @@ const UserManagementView = () => {
       )}
 
       {/* TAB CONTENT: SECURITY AUDITS */}
+      {activeTab === 'pending' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0 }}>Pending Access Requests</h3>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>Approve new Gmail users before they can sign in to the portal.</p>
+          </div>
+
+          <div className="table-container">
+            <table className="table-main">
+              <thead>
+                <tr>
+                  <th className="table-th">Name</th>
+                  <th className="table-th">Gmail Address</th>
+                  <th className="table-th">Requested At</th>
+                  <th className="table-th">Requested Role</th>
+                  <th className="table-th">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {allUsers.filter(user => !user.approved).length === 0 ? (
+                  <tr>
+                    <td colSpan="5" className="table-td" style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem' }}>
+                      No pending access requests.
+                    </td>
+                  </tr>
+                ) : (
+                  allUsers.filter(user => !user.approved).map(user => (
+                    <tr key={user.id} className="table-row">
+                      <td className="table-td" style={{ fontWeight: 600, color: 'var(--text-main)' }}>{user.name}</td>
+                      <td className="table-td">{user.email}</td>
+                      <td className="table-td" style={{ color: 'var(--text-muted)' }}>{new Date(user.createdAt).toLocaleString()}</td>
+                      <td className="table-td" style={{ textTransform: 'capitalize' }}>{user.role}</td>
+                      <td className="table-td">
+                        {isAdmin && user.email !== currentUser?.email ? (
+                          <button
+                            className="btn btn-secondary"
+                            style={{ padding: '0.35rem 0.65rem', fontSize: '0.75rem' }}
+                            onClick={() => handleApproveUser(user.id, user.email)}
+                          >
+                            Approve
+                          </button>
+                        ) : (
+                          <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                            {isAdmin ? 'No action available' : 'Admin approval required'}
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       {activeTab === 'audits' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           
@@ -272,7 +393,7 @@ const UserManagementView = () => {
 
       {/* TAB CONTENT: UTILITIES */}
       {activeTab === 'utilities' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: '2rem' }}>
           
           {/* Backup block */}
           <div className="glass-panel" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>

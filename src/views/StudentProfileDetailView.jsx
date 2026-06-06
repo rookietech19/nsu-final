@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '../api/base44Client';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
+import { useParams, useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, 
   User, 
@@ -18,7 +19,9 @@ import {
   AlertCircle 
 } from 'lucide-react';
 
-const StudentProfileDetailView = ({ studentId, setActiveView }) => {
+const StudentProfileDetailView = () => {
+  const { id: studentId } = useParams();
+  const navigate = useNavigate();
   const { triggerToast } = useNotifications();
   const [student, setStudent] = useState(null);
   const [college, setCollege] = useState(null);
@@ -41,7 +44,7 @@ const StudentProfileDetailView = ({ studentId, setActiveView }) => {
       const current = studentList.find(s => s.id === studentId);
       if (!current) {
         triggerToast('Student record not found.', 'danger');
-        setActiveView('students');
+        navigate('/students');
         return;
       }
       setStudent(current);
@@ -97,7 +100,7 @@ const StudentProfileDetailView = ({ studentId, setActiveView }) => {
       {/* Back navigation & print */}
       <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <button 
-          onClick={() => setActiveView('students')}
+          onClick={() => navigate('/students')}
           className="btn btn-secondary"
           style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}
         >
@@ -432,7 +435,7 @@ const StudentProfileDetailView = ({ studentId, setActiveView }) => {
                 <div key={exam.id} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', pageBreakInside: 'avoid', marginBottom: '2rem' }}>
                   
                   {/* Exam details grid */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', fontSize: '0.9rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
+                  <div className="grid-2-col" style={{ fontSize: '0.9rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
                     <div>
                       <div>Evaluation Block: <strong>{exam.exam_name}</strong></div>
                       <div>Subject: <strong>{exam.subject}</strong></div>
@@ -444,40 +447,42 @@ const StudentProfileDetailView = ({ studentId, setActiveView }) => {
                   </div>
 
                   {/* Marks Breakdown Table */}
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
-                    <thead>
-                      <tr style={{ borderBottom: '2px solid var(--border-color)', background: 'rgba(0,0,0,0.01)' }}>
-                        <th style={{ padding: '0.625rem', textAlign: 'left' }}>Evaluation Component</th>
-                        <th style={{ padding: '0.625rem', textAlign: 'center' }}>Marks Obtained</th>
-                        <th style={{ padding: '0.625rem', textAlign: 'center' }}>Weightage Limit</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-                        <td style={{ padding: '0.625rem' }}>Continuous Assessment (CA / Mid-Term)</td>
-                        <td style={{ padding: '0.625rem', textAlign: 'center' }}>{exam.mid_term_marks ?? '-'}</td>
-                        <td style={{ padding: '0.625rem', textAlign: 'center' }}>30</td>
-                      </tr>
-                      <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-                        <td style={{ padding: '0.625rem' }}>Objective Structured Practical Exam (OSPE)</td>
-                        <td style={{ padding: '0.625rem', textAlign: 'center' }}>{exam.ospe_marks ?? '-'}</td>
-                        <td style={{ padding: '0.625rem', textAlign: 'center' }}>20</td>
-                      </tr>
-                      <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-                        <td style={{ padding: '0.625rem' }}>Semester Theory Examination</td>
-                        <td style={{ padding: '0.625rem', textAlign: 'center' }}>{exam.sem_marks ?? '-'}</td>
-                        <td style={{ padding: '0.625rem', textAlign: 'center' }}>50</td>
-                      </tr>
-                      {/* Total */}
-                      <tr style={{ borderBottom: '2px solid var(--border-color)', fontWeight: 'bold', background: 'rgba(0,0,0,0.02)' }}>
-                        <td style={{ padding: '0.75rem' }}>Cumulative Marks Summary</td>
-                        <td style={{ padding: '0.75rem', textAlign: 'center', color: isPass ? 'var(--success)' : 'var(--danger)' }}>
-                          {exam.marks_obtained}
-                        </td>
-                        <td style={{ padding: '0.75rem', textAlign: 'center' }}>{exam.max_marks || 100}</td>
-                      </tr>
-                    </tbody>
-                  </table>
+                  <div className="table-container">
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+                      <thead>
+                        <tr style={{ borderBottom: '2px solid var(--border-color)', background: 'rgba(0,0,0,0.01)' }}>
+                          <th style={{ padding: '0.625rem', textAlign: 'left' }}>Evaluation Component</th>
+                          <th style={{ padding: '0.625rem', textAlign: 'center' }}>Marks Obtained</th>
+                          <th style={{ padding: '0.625rem', textAlign: 'center' }}>Weightage Limit</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
+                          <td style={{ padding: '0.625rem' }}>Continuous Assessment (CA / Mid-Term)</td>
+                          <td style={{ padding: '0.625rem', textAlign: 'center' }}>{exam.mid_term_marks ?? '-'}</td>
+                          <td style={{ padding: '0.625rem', textAlign: 'center' }}>30</td>
+                        </tr>
+                        <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
+                          <td style={{ padding: '0.625rem' }}>Objective Structured Practical Exam (OSPE)</td>
+                          <td style={{ padding: '0.625rem', textAlign: 'center' }}>{exam.ospe_marks ?? '-'}</td>
+                          <td style={{ padding: '0.625rem', textAlign: 'center' }}>20</td>
+                        </tr>
+                        <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
+                          <td style={{ padding: '0.625rem' }}>Semester Theory Examination</td>
+                          <td style={{ padding: '0.625rem', textAlign: 'center' }}>{exam.sem_marks ?? '-'}</td>
+                          <td style={{ padding: '0.625rem', textAlign: 'center' }}>50</td>
+                        </tr>
+                        {/* Total */}
+                        <tr style={{ borderBottom: '2px solid var(--border-color)', fontWeight: 'bold', background: 'rgba(0,0,0,0.02)' }}>
+                          <td style={{ padding: '0.75rem' }}>Cumulative Marks Summary</td>
+                          <td style={{ padding: '0.75rem', textAlign: 'center', color: isPass ? 'var(--success)' : 'var(--danger)' }}>
+                            {exam.marks_obtained}
+                          </td>
+                          <td style={{ padding: '0.75rem', textAlign: 'center' }}>{exam.max_marks || 100}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
 
                   {/* Grades and conduct cards */}
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.25rem', margin: '0.5rem 0' }}>

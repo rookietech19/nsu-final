@@ -353,7 +353,7 @@ const ExamScheduleView = () => {
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div className="grid-2-col">
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Subject Name</label>
                   <input 
@@ -378,7 +378,7 @@ const ExamScheduleView = () => {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div className="grid-2-col">
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Target Batch / Cohort</label>
                   <select 
@@ -408,7 +408,7 @@ const ExamScheduleView = () => {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1.25rem' }}>
+              <div className="grid-3-col">
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Exam Date</label>
                   <input 
@@ -443,7 +443,7 @@ const ExamScheduleView = () => {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+              <div className="grid-2-col">
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Venue Hall</label>
                   <input 
@@ -467,7 +467,7 @@ const ExamScheduleView = () => {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+              <div className="grid-2-col">
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Total Marks</label>
                   <input 

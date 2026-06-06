@@ -340,9 +340,8 @@ const BehaviorView = () => {
           {/* Certificate Printable panel */}
           {isCertificateOpen && certStudentObj ? (
             <div 
-              className="glass-panel" 
+              className="glass-panel certificate-card" 
               style={{ 
-                padding: '4rem', 
                 background: 'white', 
                 color: 'black', 
                 border: '15px double #334155', 
@@ -385,7 +384,7 @@ const BehaviorView = () => {
               </p>
 
               {/* Signatures */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6rem', marginTop: '4rem', textAlign: 'center' }}>
+              <div className="signature-grid" style={{ marginTop: '4rem', textAlign: 'center' }}>
                 <div>
                   <div style={{ height: '40px' }}></div>
                   <div style={{ borderTop: '1px solid black', width: '200px', margin: '0 auto', paddingTop: '0.25rem', fontSize: '0.85rem' }}>
@@ -447,7 +446,7 @@ const BehaviorView = () => {
                 </select>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div className="grid-2-col">
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Incident Date</label>
                   <input 
@@ -472,7 +471,7 @@ const BehaviorView = () => {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div className="grid-2-col">
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Category</label>
                   <select 
